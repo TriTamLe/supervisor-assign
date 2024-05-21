@@ -15,6 +15,11 @@ public class Client
             Console.WriteLine("Sending file to server...");
             SendFile(stream, "./officer.csv");
             Console.WriteLine("File sent to server.");
+
+
+            Console.WriteLine("Server has read all data of the file.");
+            SendFile(stream, "./room.csv");
+            Console.WriteLine("File sent to server.");
             stream.Close();
             client.Close();
         }
@@ -24,7 +29,7 @@ public class Client
         }
     }
 
-    private static void SendFile(NetworkStream stream, string filePath)
+    static void SendFile(NetworkStream stream, string filePath)
     {
         byte[] fileData = File.ReadAllBytes(filePath);
 
