@@ -3,37 +3,92 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+public class Officer
+{
+    public string Order { get; set; }
+    public string Guid { get; set; }
+    public string FullName { get; set; }
 
+    public Officer(string order, string guid, string fullName)
+    {
+        Order = order;
+        Guid = guid;
+        FullName = fullName;
+    }
+}
+public class Room
+{
+    public string Order { get; set; }
+    public string RoomID { get; set; }
+
+    public Room(string order, string roomID)
+    {
+        Order = order;
+        RoomID = roomID;
+    }
+}
+
+public class Assignment
+{
+    public string RoomID { get; set; }
+    public string Officer1Guid { get; set; }
+    public string Officer1 { get; set; }
+    public string Officer2Guid { get; set; }
+    public string Officer2 { get; set; }
+
+    public Assignment(string roomId, string officer1Guid, string officer1, string officer2Guid, string officer2)
+    {
+        RoomID = roomId;
+        Officer1Guid = officer1Guid;
+        Officer1 = officer1;
+        Officer2Guid = officer2Guid;
+        Officer2 = officer2;
+    }
+
+}
+
+public class SupervisorAssignment
+{
+    public string SupervisorGuid { get; set; }
+    public string SupervisorName { get; set; }
+    public List<string> RoomIds { get; set; }
+
+    public SupervisorAssignment(string supervisorGuid, string supervisorName, List<string> roomIds)
+    {
+        SupervisorGuid = supervisorGuid;
+        SupervisorName = supervisorName;
+        RoomIds = roomIds;
+    }
+}
 
 class AssignHandler
 {
+    private static string OFFICER_FILE_PATH = "./received-files/officer_received.csv";
+    private static string ROOM_FILE_PATH = "./received-files/room_received.csv";
+    private static string ASSIGNMENTS_FILE_PATH = "./result-files//assignments.csv";
+    private static string SUPERVISOR_FILE_PATH = "./result-files//supervisor.csv";
+    private static string ASSIGNMENTS_TITLE = "PhongThi,MaCanBo1,TenCanBo1,MaCanBo2,TenCanBo2";
+    private static string SUPERVISOR_TITLE = "MaCanBo,TenCanBo,PhongThi";
+
     public static void Assign()
     {
-        string officerFilePath = "./officer_received.csv";
-        string roomFilePath = "./room_received.csv";
-        string assignmentsFilePath = "./assignments.csv";
-        string supervisorFilePath = "./supervisor.csv";
+        List<Officer> officers = ReadOfficerCsvFile(OFFICER_FILE_PATH);
+        List<Room> rooms = ReadRoomCsvFile(ROOM_FILE_PATH);
 
-        List<(string Order, string Guid, string FullName)> officers = ReadOfficerCsvFile(officerFilePath);
-        List<(string Order, string RoomID)> rooms = ReadRoomCsvFile(roomFilePath);
-
-        var assignments = AssignOfficersToRooms(officers, rooms, out List<(string Order, string Guid, string FullName)> remainingOfficers);
-
+        var assignments = AssignOfficersToRooms(officers, rooms, out List<Officer> remainingOfficers);
 
         var supervisorAssignments = AssignSupervisorsToRooms(remainingOfficers, rooms);
 
-        WriteCsvFile(assignmentsFilePath, assignments);
-        WriteSupervisorsCsvFile(supervisorFilePath, supervisorAssignments);
+        WriteCsvFile(ASSIGNMENTS_FILE_PATH, assignments);
+        WriteSupervisorsCsvFile(SUPERVISOR_FILE_PATH, supervisorAssignments);
 
-        Console.WriteLine("Assignments and Supervisor assignments have been written to " + assignmentsFilePath + " and " + supervisorFilePath);
-
-
-        Console.WriteLine("Assignments have been written to " + assignmentsFilePath);
+        Console.WriteLine("Assignments and Supervisor assignments have been written to " + ASSIGNMENTS_FILE_PATH + " and " + SUPERVISOR_FILE_PATH);
+        Console.WriteLine("Assignments have been written to " + ASSIGNMENTS_FILE_PATH);
     }
 
-    static List<(string Order, string Guid, string FullName)> ReadOfficerCsvFile(string filePath)
+    static List<Officer> ReadOfficerCsvFile(string filePath)
     {
-        var officers = new List<(string Order, string Guid, string FullName)>();
+        var officers = new List<Officer>();
         using (var reader = new StreamReader(filePath))
         {
             while (!reader.EndOfStream)
@@ -44,7 +99,7 @@ class AssignHandler
                     var fields = line.Split(',');
                     if (fields.Length >= 2)
                     {
-                        officers.Add((fields[0], fields[1], fields[2]));
+                        officers.Add(new Officer(fields[0], fields[1], fields[2]));
                     }
                 }
             }
@@ -52,9 +107,9 @@ class AssignHandler
         return officers;
     }
 
-    static List<(string Order, string RoomID)> ReadRoomCsvFile(string filePath)
+    static List<Room> ReadRoomCsvFile(string filePath)
     {
-        var rooms = new List<(string Order, string RoomID)>();
+        var rooms = new List<Room>();
         using (var reader = new StreamReader(filePath))
         {
             while (!reader.EndOfStream)
@@ -65,21 +120,21 @@ class AssignHandler
                     var fields = line.Split(',');
                     if (fields.Length >= 1)
                     {
-                        rooms.Add((fields[0], fields[1]));
+                        rooms.Add(new Room(fields[0], fields[1]));
                     }
                 }
             }
         }
         return rooms;
     }
-    static List<(string RoomID, string Officer1Guid, string Officer1, string Officer2Guid, string Officer2)> AssignOfficersToRooms(
-    List<(string Order, string Guid, string FullName)> officers,
-    List<(string Order, string RoomID)> rooms,
-    out List<(string Order, string Guid, string FullName)> remainingOfficers
+    static List<Assignment> AssignOfficersToRooms(
+    List<Officer> officers,
+    List<Room> rooms,
+    out List<Officer> remainingOfficers
     )
     {
-        var assignments = new List<(string RoomID, string Officer1Guid, string Officer1, string Officer2Guid, string Officer2)>();
-        remainingOfficers = new List<(string Order, string Guid, string FullName)>();
+        var assignments = new List<Assignment>();
+        remainingOfficers = new List<Officer>();
 
         rooms = rooms.Skip(1).ToList();
         officers = officers.Skip(1).ToList();
@@ -108,7 +163,7 @@ class AssignHandler
 
 
 #pragma warning disable CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
-            assignments.Add((roomId, officer1Guid, officer1, officer2Guid, officer2));
+            assignments.Add(new Assignment(roomId, officer1Guid, officer1, officer2Guid, officer2));
 #pragma warning restore CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
         }
 
@@ -121,11 +176,11 @@ class AssignHandler
         return assignments;
     }
 
-    static void WriteCsvFile(string filePath, List<(string RoomID, string Officer1Guid, string Officer1, string Officer2Guid, string Officer2)> assignments)
+    static void WriteCsvFile(string filePath, List<Assignment> assignments)
     {
         using (var writer = new StreamWriter(filePath))
         {
-            writer.WriteLine("RoomId,Officer1Guid,Officer1,Officer2Guid,Officer2");
+            writer.WriteLine(ASSIGNMENTS_TITLE);
             foreach (var assignment in assignments)
             {
                 writer.WriteLine($"{assignment.RoomID},{assignment.Officer1Guid},{assignment.Officer1},{assignment.Officer2Guid},{assignment.Officer2}");
@@ -133,9 +188,9 @@ class AssignHandler
         }
     }
 
-    static List<(string SupervisorGuid, string SupervisorName, List<string> RoomIds)> AssignSupervisorsToRooms(
-        List<(string Order, string Guid, string FullName)> remainingOfficers,
-        List<(string Order, string RoomID)> rooms)
+    static List<SupervisorAssignment> AssignSupervisorsToRooms(
+        List<Officer> remainingOfficers,
+        List<Room> rooms)
     {
 
         if (remainingOfficers.Count == 0)
@@ -147,7 +202,7 @@ class AssignHandler
 
         var baseNumberOfRoom = rooms.Count / remainingOfficers.Count;
 
-        var supervisorAssignments = new List<(string SupervisorGuid, string SupervisorName, List<string> RoomIds)>();
+        var supervisorAssignments = new List<SupervisorAssignment>();
 
         int roomIndex = 0;
         foreach (var officer in remainingOfficers)
@@ -168,7 +223,7 @@ class AssignHandler
                 roomIndex++;
             }
 
-            supervisorAssignments.Add((officer.Guid, officer.FullName, supervisedRooms));
+            supervisorAssignments.Add(new SupervisorAssignment(officer.Guid, officer.FullName, supervisedRooms));
         }
 
         // Ensure all rooms are supervised
@@ -182,14 +237,14 @@ class AssignHandler
 
         return supervisorAssignments;
     }
-    static void WriteSupervisorsCsvFile(string filePath, List<(string SupervisorGuid, string SupervisorName, List<string> RoomIds)> supervisorAssignments)
+    static void WriteSupervisorsCsvFile(string filePath, List<SupervisorAssignment> supervisorAssignments)
     {
         using (var writer = new StreamWriter(filePath))
         {
-            writer.WriteLine("SupervisorGuid,SupervisorName,RoomIds");
+            writer.WriteLine(SUPERVISOR_TITLE);
             foreach (var assignment in supervisorAssignments)
             {
-                writer.WriteLine($"{assignment.SupervisorGuid},{assignment.SupervisorName},{string.Join(";", assignment.RoomIds)}");
+                writer.WriteLine($"{assignment.SupervisorGuid},{assignment.SupervisorName},{string.Join("; ", assignment.RoomIds)}");
             }
         }
     }

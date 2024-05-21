@@ -13,23 +13,23 @@ public class Client
             NetworkStream stream = client.GetStream();
             Console.WriteLine("Connected to server.");
             Console.WriteLine("Sending file to server...");
-            SendFile(stream, "./officer.csv");
+            SendFile(stream, "./send-files/can-bo.csv");
             Console.WriteLine("File sent to server.");
 
 
             Console.WriteLine("Server has read all data of the file.");
-            SendFile(stream, "./room.csv");
+            SendFile(stream, "./send-files/phong-thi.csv");
             Console.WriteLine("File sent to server.");
 
             byte[] fileSizeBytes1 = new byte[4];
             stream.Read(fileSizeBytes1, 0, fileSizeBytes1.Length);
             int fileSize1 = BitConverter.ToInt32(fileSizeBytes1, 0);
-            ReceiveFile(stream, "./assignments.csv", fileSize1);
+            ReceiveFile(stream, "./receive-files/giam-thi-phong-thi.csv", fileSize1);
 
             byte[] fileSizeBytes2 = new byte[4];
             stream.Read(fileSizeBytes2, 0, fileSizeBytes2.Length);
             int fileSize2 = BitConverter.ToInt32(fileSizeBytes2, 0);
-            ReceiveFile(stream, "./supervisor.csv", fileSize2);
+            ReceiveFile(stream, "./receive-files/giam-sat-hanh-lang.csv", fileSize2);
             stream.Close();
             client.Close();
         }

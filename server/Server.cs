@@ -1,10 +1,18 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+
+
 
 public class Server
 
+
+
 {
+
+    private static string OFFICER_FILE_PATH = "./received-files/officer_received.csv";
+    private static string ROOM_FILE_PATH = "./received-files/room_received.csv";
+    private static string ASSIGNMENTS_FILE_PATH = "./result-files//assignments.csv";
+    private static string SUPERVISOR_FILE_PATH = "./result-files//supervisor.csv";
     private static int port = 1234;
     private static IPAddress localAddr = IPAddress.Parse("127.0.0.1");
     public static void Start()
@@ -38,27 +46,27 @@ public class Server
 
             NetworkStream stream = client.GetStream();
 
-            string file1Path = "./officer_received.csv";
+
             // Read the file size from the client
             byte[] fileSizeBytes1 = new byte[4];
             stream.Read(fileSizeBytes1, 0, fileSizeBytes1.Length);
             int fileSize1 = BitConverter.ToInt32(fileSizeBytes1, 0);
-            ReceiveFile(stream, file1Path, fileSize1);
+            ReceiveFile(stream, OFFICER_FILE_PATH, fileSize1);
 
 
-            string file2Path = "./room_received.csv";
+
             // Read the file size from the client
             byte[] fileSizeBytes2 = new byte[4];
             stream.Read(fileSizeBytes2, 0, fileSizeBytes2.Length);
             int fileSize2 = BitConverter.ToInt32(fileSizeBytes2, 0);
 
-            ReceiveFile(stream, file2Path, fileSize2);
+            ReceiveFile(stream, ROOM_FILE_PATH, fileSize2);
             // Process the received files
 
             AssignHandler.Assign();
 
-            SendFile(stream, "./assignments.csv");
-            SendFile(stream, "./supervisor.csv");
+            SendFile(stream, ASSIGNMENTS_FILE_PATH);
+            SendFile(stream, SUPERVISOR_FILE_PATH);
 
 
             client.Close();
